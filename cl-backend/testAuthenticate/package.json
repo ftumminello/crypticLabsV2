@@ -1,0 +1,16 @@
+{
+  "name": "testauthenticate",
+  "version": "1.0.0",
+  "description": "test authenticate endpoint for crypticlabs.co",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Frank Tumminello",
+  "license": "ISC",
+  "dependencies": {
+    "aws-xray-sdk": "^3.4.1",
+    "pg": "^8.8.0",
+    "pg-format": "^1.0.4"
+  }
+}
