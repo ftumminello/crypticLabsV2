@@ -1,0 +1,15 @@
+{
+  "name": "validateuuid",
+  "version": "1.0.0",
+  "description": "Validate uuid for cl apply page",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "FrankieDevs",
+  "license": "ISC",
+  "dependencies": {
+    "aws-xray-sdk": "^3.4.1",
+    "pg": "^8.9.0"
+  }
+}

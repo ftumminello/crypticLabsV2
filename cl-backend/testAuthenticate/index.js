@@ -77,20 +77,3 @@ exports.handler = async function(event) {
     client.end();
     return(response(dbRes.rows[0].uuid));
 };
-
-
-
-// client.query(selectString(event.promo), (err, result) => {
-//     if (err) {
-//         client.end();
-//         resolve(internalErrResponse);
-//     }
-//     console.log(result.rowCount);
-//     if (result.rowCount === 0) {
-//         client.end();
-//         resolve(defaultResponse);
-//     }
-//     client.end();
-//     resolve(response(result.rows[0].uuid));
-// });
-    
