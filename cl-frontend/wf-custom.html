@@ -1,6 +1,83 @@
+<!-- Authentication PAGE -->
 <!-- This goes inside <head> tag  -->
 <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 
 <!-- This goes Before </body> tag -->
 <script src="https://cryptic-labs-authenticate.s3.us-west-1.amazonaws.com/bundle.js"></script>
+
+<!-- Application Page -->
+<!-- This goes inside <head> tag -->
+<script>
+    window.onload = function() {
+        var anchors = document.getElementsByTagName('*');
+        for(var i = 0; i < anchors.length; i++) {
+            var anchor = anchors[i];
+            anchor.onclick = function() {
+                code = this.getAttribute('whenClicked');
+                eval(code);   
+            }
+        }
+    }
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+        }
+    async function getRowid() {
+        const uuid = getCookie('cl-uuid');
+        const res = await fetch("https://mqfzmdl5ez3zjsqdod72rvzlru0xytjq.lambda-url.us-west-1.on.aws/", {
+            method: 'POST',
+            body: JSON.stringify({uuid: uuid}),
+        })
+        if (!res || res.status > 200) {
+            return false;
+        }
+        return res.json();
+    }
+    async function handleRedirect() {
+        const s = await getRowid();
+        if (!s || !s?.row) {
+            window.location = "https://crypticLabs.co/auth";
+        }
+        if (s.isUsed) {
+            window.location = "https://crypticLabs.co/share"
+        }
+    } 
+    function getHandleInfo() {
+        const dis = document.getElementById('discord-2').value;
+        const tw = document.getElementById('twitter-2').value;
+        return ({dis, tw});
+    }
+    async function submitApplication() {
+        const uuid = getCookie('cl-uuid');
+        const {dis, tw} = getHandleInfo()
+        const res = await fetch("https://b2guggbptcqfu4ov4mroh4lq3q0elkab.lambda-url.us-west-1.on.aws/", {
+            method: 'POST',
+            body: JSON.stringify({
+                clUuid: uuid,
+                twitterHandle: tw,
+                discordHandle: dis
+            }),
+        });   	
+    }
+    handleRedirect();
+</script>
+<label for="twitter-2">Twitter</label>
+<input id="twitter-2"></input>
+<input id="discord-2" value="fdasfsd"></input>
+<button onclick="getHandleInfo()">Fuck</button>
+<!-- This is added to form submit button -->
+
+
+

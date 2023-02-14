@@ -1,0 +1,15 @@
+{
+  "name": "getshare",
+  "version": "1.0.0",
+  "description": "Get share codes based on uuid is used",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "FrankieDevs",
+  "license": "ISC",
+  "dependencies": {
+    "aws-xray-sdk": "^3.4.1",
+    "pg": "^8.9.0"
+  }
+}

@@ -7,7 +7,7 @@ const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.el
 // Functions
 function selectString(s) {
     const selectQuery = `
-    SELECT rowid from clPromoCodes
+    SELECT rowid, isUsed, applicationstatus from clPromoCodes
     WHERE uuid = '${s}'
     `;
     return (selectQuery);
@@ -22,11 +22,13 @@ async function checkValidUuid(client, body) {
         return false;
     }
 }
-const response = ((s) => {
+const response = ((rowid, isused, applicationStatus) => {
     return ({
         statusCode: 200,
         body: {
-            row: `${s}`
+            row: `${rowid}`,
+            isUsed: isused,
+            applicationStatus: applicationStatus
         },
     });
 });
@@ -76,6 +78,6 @@ exports.handler = async function(event) {
         return (defaultResponse);
     }
     client.end();
-    return(response(dbRes.rows[0].rowid));
+    return(response(dbRes.rows[0].rowid, dbRes.rows[0].isused, dbRes.rows[0].applicationstatus));
 };
 

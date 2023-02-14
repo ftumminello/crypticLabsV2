@@ -31,7 +31,8 @@ function generatePromocodeArr(numPromoCodes, promoCodeLength) {
     const promoData = [];
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (let i=0; i < numPromoCodes; i++) {
-        promoData.push([generatePasscode(promoCodeLength, characters), generateUUID()]);
+        const time = new Date();
+        promoData.push([generatePasscode(promoCodeLength, characters), generateUUID(), false, false, time.toISOString()]);
     }
     return promoData
 }

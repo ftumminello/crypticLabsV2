@@ -1,0 +1,15 @@
+{
+  "name": "submitapplication",
+  "version": "1.0.0",
+  "description": "Submit application endpoint for CrypticLabs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "FrankieDevs",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.9.0",
+    "pg-format": "^1.0.4"
+  }
+}
