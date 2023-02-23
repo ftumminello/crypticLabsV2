@@ -152,8 +152,10 @@ exports.handler = async function(event) {
         return(
             {
             statusCode: 401,
-            body: 'Unauthorized request',
-            errorCode: s   
+            body: {
+                message:'Unauthorized request',
+                errorCode: s
+            },   
             }
         )
     }
@@ -161,8 +163,10 @@ exports.handler = async function(event) {
         return (
             {
             statusCode: 502,
-            body: 'Bad Gateway (unexpected upstream response)',
-            errorCode: s
+            body: {
+                message:'Bad Gateway (unexpected upstream response)',
+                errorCode: s
+            }
             }
         )
     }

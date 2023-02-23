@@ -3,6 +3,8 @@ import { useState } from "react";
 import styled from "styled-components";
 import { TailSpin } from 'react-loader-spinner'
 
+const mobileLarge = '(max-width: 600px)';
+const mobileSmall = '(max-width: 380px)';
 
 export function PromoAuthenticate() {
     // functions
@@ -147,6 +149,16 @@ font-size: 20px;
 text-align: center;
 font-weight: 500;
 margin: 0px 4px 0px 4px;
+
+// mobile
+@media ${mobileLarge} {
+    height: 48px;
+    width: 36px;
+    font-size: 16px;
+} 
+@media ${mobileSmall} {
+    font-size: 12px;
+} 
 `
 const StyledInputRow = styled.div`
 display: flex;

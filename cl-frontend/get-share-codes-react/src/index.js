@@ -5,12 +5,12 @@ import { ShareCodesPage } from './share';
 
 function App() {
     return(
-        <ShareCodesPage></ShareCodesPage>
+        <ShareCodesPage/>
     );
 }
 
 const root = ReactDOM.createRoot(
-    document.getElementById('react-target')
+    document.getElementById('react-target-2')
 );
 
 root.render(App());

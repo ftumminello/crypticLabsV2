@@ -73,6 +73,7 @@ exports.handler = async function(event) {
     if (!dbRes) {
         return (internalErrResponse);
     }
+    // not valid uuid
     if (dbRes.rowCount === 0) {
         client.end();
         return (defaultResponse);

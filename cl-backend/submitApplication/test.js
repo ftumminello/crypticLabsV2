@@ -2,7 +2,9 @@ const index = require("./index")
 
 const testObj = {
     body: JSON.stringify({
-        uuid: 'RHF1eFc4LURMUk5Cci1qYzZOQTMtRmJWSm1oLTdSdmVNci1hTDNLSDI='
+        clUuid: 'M0pPcnp1LUV3Y0tnMS1qYmt5RkUtNHJDbzlkLXdoZnVJai1NWVFBckk=',
+        twitterHandle: 'hello',
+        discordHandle: 'helo'
     })
 }
 async function main() {
