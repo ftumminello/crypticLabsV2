@@ -151,7 +151,7 @@ export function PromoAuthenticate() {
         }
         if (response?.uuid) {
             // Todo: add expire date and refresh the cookie MVP
-            document.cookie = `cl-uuid=${window.btoa(response.uuid)}`;
+            document.cookie = `cl-uuid=${window.btoa(response.uuid)}; max-age=31536000`;
             window.location.href = "/ob7bycmhqk";
             return;
         }
