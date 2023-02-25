@@ -218,6 +218,7 @@ flex-direction: row;
 justify-content: space-between;
 align-items: center;
 width: 100%;
+height: 25px;
 `
 const CopyWrapper = styled.div`
 display: flex;
@@ -240,7 +241,7 @@ width: 150px;
 const CopyIcon = styled.svg`
 width: 25px;
 height: 25px;
-background-color: #fff;
+background-color: transparent;
 background-image: url('https://uploads-ssl.webflow.com/63519b38913fa9eddfe085a6/63e58ce9e0558473b4f39d04_copy-success-svgrepo-com.svg');
 background-repeat: no-repeat;
 background-size: contain;
