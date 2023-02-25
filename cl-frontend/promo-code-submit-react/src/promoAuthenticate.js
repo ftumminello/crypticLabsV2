@@ -7,18 +7,29 @@ const mobileLarge = '(max-width: 600px)';
 const mobileSmall = '(max-width: 380px)';
 
 export function PromoAuthenticate() {
-    // functions
+    // constants & states
     let dummyArray;
     const [promo, setPromo] = useState(['', '', '', '', '', '']);
     const [response, setResponse] = useState(false);
-    useEffect(() => {
-        if (response?.uuid) {
-            // Todo: add expire date and refresh the cookie MVP
-            document.cookie = `cl-uuid=${window.btoa(response.uuid)}`
-            window.location.href = "https://www.crypticlabs.co/apply";
+    const [cookieStatus, setCookieStatus] = useState(false);
+
+    // functions
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for(let i = 0; i <ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+          }
+          if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+          }
         }
-    }, [response]);
-    
+        return "";
+      }
+
     const handlePress = (event) => {
         // get values
         const idx = event.target.id.split('-')[2];
@@ -48,7 +59,6 @@ export function PromoAuthenticate() {
 
                 // if reached the end of input boxes
                 if (numIdx+i == 5) {
-                    console.log(promo);
                     return;
                 }
 
@@ -96,7 +106,6 @@ export function PromoAuthenticate() {
     async function getUUID() {
         // for invalid input to avoid hitting API
         for (let i=0; i<promo.length; i++) {
-            console.log(promo[i])
             if (promo[i] === '') {
                 return 'Invalid';
             }
@@ -110,10 +119,65 @@ export function PromoAuthenticate() {
         return res.json();
     }
 
+    async function validateUuidCookie(cookie) {
+        const res = await fetch("https://mqfzmdl5ez3zjsqdod72rvzlru0xytjq.lambda-url.us-west-1.on.aws/", {
+            method: 'POST',
+            body: JSON.stringify({uuid: cookie})
+        })
+        if (res.status === 502) {
+            return ('INTERNAL_ERROR');
+        }
+        // if blank cookie or bad body format
+        if (res.status === 401) {
+            return('INVALID');
+        }
+        return res.json();
+    }
+
     async function submitPromo() {
         setResponse('pending');
         setResponse(await getUUID());
     }
+    async function validateCookie(cookie) {
+        setCookieStatus(await validateUuidCookie(cookie))
+    }
+
+    useEffect(() => {
+        console.log(response);
+        if (response?.isUsed) {
+            document.cookie = `cl-uuid=${window.btoa(response.uuid)}; max-age=31536000`;
+            window.location.href = "/share";
+            return;
+        }
+        if (response?.uuid) {
+            // Todo: add expire date and refresh the cookie MVP
+            document.cookie = `cl-uuid=${window.btoa(response.uuid)}`;
+            window.location.href = "/ob7bycmhqk";
+            return;
+        }
+    }, [response]);
+
+    useEffect(() => {
+        // if valid cookie and application already submitted
+        if (cookieStatus?.isUsed === true) {
+            window.location.href = "/share";
+            return;
+        }
+        // if valid cookie no application submitted
+        if (cookieStatus?.row) {
+            window.location.href = "/ob7bycmhqk"
+            return;
+        }
+    }, [cookieStatus])
+
+    useEffect(() => {
+        const uuidCookie = getCookie("cl-uuid");
+        // if cookie exists
+        if (uuidCookie !== "") {
+            validateCookie(uuidCookie);           
+        }
+    }, [])
+
     return (
         <FormWrapper>
             <StyledInputRow>

@@ -18,6 +18,13 @@ CREATE TABLE clPromoCodes (
     shareRow3 INTEGER UNIQUE,
     twitterHandle VARCHAR ( 50 ),
     discordHandle VARCHAR ( 50 ),
+    wallet VARCHAR ( 50 ),
+    description VARCHAR ( 20 ),
+    upToDate VARCHAR ( 350 ),
+    nftCreation VARCHAR ( 750 ),
+    goals VARCHAR ( 500 ),
+    inspo VARCHAR ( 150 ),
+    projInspo VARCHAR ( 150 ),
     lastModified TIMESTAMP  without time zone NOT NULL
 )`;
 const insertPromoCodeString = `
@@ -37,7 +44,7 @@ const authenticateDataString = `
 SELECT rowID from clPromoCodes
 WHERE rowID<5`
 
-const values = functions.generatePromocodeArr(3, 6);
+const values = functions.generatePromocodeArr(997, 6);
 const client = new pg.Client(dbURL);
 client.connect((err) => {
     if (err) {
@@ -53,22 +60,22 @@ client.connect((err) => {
     // })
 
     // INSERT VALUES TO TABLE
-    // client.query(format(insertPromoCodeString, values), (err, result) => {
-    //     if (err) {
-    //         console.error(err);
-    //     }
-    //     console.log(result);
-    //     client.end();
-    // })
-    
-    // RUN TEST QUERY
-    client.query(testUpdateString, (err, result) => {
+    client.query(format(insertPromoCodeString, values), (err, result) => {
         if (err) {
             console.error(err);
         }
-        client.end();
         console.log(result);
+        client.end();
     })
+    
+    // RUN TEST QUERY
+    // client.query(testUpdateString, (err, result) => {
+    //     if (err) {
+    //         console.error(err);
+    //     }
+    //     client.end();
+    //     console.log(result);
+    // })
 
     // UPDATE VALUES TO TABLE
     // const u = [true, true];
