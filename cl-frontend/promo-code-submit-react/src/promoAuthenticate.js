@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import styled from "styled-components";
 import { TailSpin } from 'react-loader-spinner'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { InjectedConnector } from 'wagmi/connectors/injected'
 
 const mobileLarge = '(max-width: 600px)';
 const mobileSmall = '(max-width: 380px)';
@@ -13,23 +15,29 @@ export function PromoAuthenticate() {
     const [response, setResponse] = useState(false);
     const [cookieStatus, setCookieStatus] = useState(false);
 
+    // Wallet Connect states and hooks
+    const { address, isConnected } = useAccount()
+    const { connect } = useConnect({
+    connector: new InjectedConnector(),
+    })
+    const { disconnect } = useDisconnect()
+
     // functions
     function getCookie(cname) {
         let name = cname + "=";
         let decodedCookie = decodeURIComponent(document.cookie);
         let ca = decodedCookie.split(';');
         for(let i = 0; i <ca.length; i++) {
-          let c = ca[i];
-          while (c.charAt(0) == ' ') {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
             c = c.substring(1);
-          }
-          if (c.indexOf(name) == 0) {
+        }
+        if (c.indexOf(name) == 0) {
             return c.substring(name.length, c.length);
-          }
+        }
         }
         return "";
-      }
-
+    }
     const handlePress = (event) => {
         // get values
         const idx = event.target.id.split('-')[2];
@@ -86,7 +94,6 @@ export function PromoAuthenticate() {
             }
         } 
     }
-
     const handleDownStroke = (event) => {        
         const keyCode = event.keyCode;
         // if backspace press
@@ -102,7 +109,6 @@ export function PromoAuthenticate() {
             }
         }
     }
-    
     async function getUUID() {
         // for invalid input to avoid hitting API
         for (let i=0; i<promo.length; i++) {
@@ -118,7 +124,6 @@ export function PromoAuthenticate() {
         })
         return res.json();
     }
-
     async function validateUuidCookie(cookie) {
         const res = await fetch("https://mqfzmdl5ez3zjsqdod72rvzlru0xytjq.lambda-url.us-west-1.on.aws/", {
             method: 'POST',
@@ -133,7 +138,6 @@ export function PromoAuthenticate() {
         }
         return res.json();
     }
-
     async function submitPromo() {
         setResponse('pending');
         setResponse(await getUUID());
@@ -141,7 +145,24 @@ export function PromoAuthenticate() {
     async function validateCookie(cookie) {
         setCookieStatus(await validateUuidCookie(cookie))
     }
-
+    function makeWalletAbrevStr(address) {
+        const len = address.length;
+        let abrvStr = '';
+        for (let i=0; i<11; i++) {
+            if (i<6) {
+                abrvStr+=address[i];
+            }
+            else if (i===6) {
+                abrvStr+='...'
+            }
+            else {
+                abrvStr+=address[len-11+i]
+            }
+        }
+        return abrvStr
+    }
+    
+    //Hooks
     useEffect(() => {
         console.log(response);
         if (response?.isUsed) {
@@ -152,7 +173,7 @@ export function PromoAuthenticate() {
         if (response?.uuid) {
             // Todo: add expire date and refresh the cookie MVP
             document.cookie = `cl-uuid=${window.btoa(response.uuid)}; max-age=31536000`;
-            window.location.href = "/ob7bycmhqk";
+            window.location.href = "/aanfhqzp2m";
             return;
         }
     }, [response]);
@@ -162,10 +183,11 @@ export function PromoAuthenticate() {
         if (cookieStatus?.isUsed === true) {
             window.location.href = "/share";
             return;
+
         }
         // if valid cookie no application submitted
         if (cookieStatus?.row) {
-            window.location.href = "/ob7bycmhqk"
+            window.location.href = "/aanfhqzp2m"
             return;
         }
     }, [cookieStatus])
@@ -178,8 +200,30 @@ export function PromoAuthenticate() {
         }
     }, [])
 
+    // if wallet is not connected
+    if (!isConnected) {
+        return(
+            <WalletConnectView connect={connect}/>
+        )
+    }
+
     return (
         <FormWrapper>
+            <WalletInfoRow>
+                <WalletInfoContainer onClick={() => {disconnect()}}>
+                    <UnlinkIcon 
+                        src="https://uploads-ssl.webflow.com/63519b38913fa9eddfe085a6/63faa98f69cf8021c5076d96_broken-link-broken-link-url-hyperlink-disconnect-svgrepo-com.svg"
+                        loading="lazy"/>
+                    <WalletInfoText>Disconnect</WalletInfoText>
+                </WalletInfoContainer>
+                <WalletInfoContainer>
+                    <WalletStatusIcon
+                        src="https://uploads-ssl.webflow.com/63519b38913fa9eddfe085a6/63faa6a1b8989945a1c7296d_dot-svgrepo-com.svg"
+                        loading="lazy"/>
+                    <WalletInfoText>{makeWalletAbrevStr(address)}</WalletInfoText>
+                </WalletInfoContainer>
+            </WalletInfoRow>
+            <HeaderText>Enter your code to apply!</HeaderText>
             <StyledInputRow>
                 <StyledInput onInput={handlePress} onKeyDown={handleDownStroke} maxLength="6" type="text" id="promo-entry-0"></StyledInput>
                 <StyledInput onInput={handlePress} onKeyDown={handleDownStroke} maxLength="6" type="text" id="promo-entry-1"></StyledInput>
@@ -194,7 +238,6 @@ export function PromoAuthenticate() {
         </FormWrapper>
     )
 }
-
 const FormWrapper = styled.div`
     display: flex;
     flex-direction: column;
@@ -254,7 +297,97 @@ color: #FC100D;
 const LoaderWrapper = styled.div`
 margin-bottom: 5px;
 `
+const WallectConnectContainer = styled.div`
+display: flex;
+flex-direction: column;
+align-items: center;
+`
+const HeaderText = styled.h2`
+color: #42307d;
+font-weight: 600;
+font-size: 32px;
+padding-bottom: 5px;
+`
+const WalletConnectBtn = styled.a`
+text-decoration: none;
+margin-top: 20px;
+padding: 9px 40px;
+font-size: 14px;
+color: #1d2939;
+background-color: transparent;
+border: 2px solid #1d2939;
+border-radius: 100px;
+cursor: pointer;
+transition: 0.3s;
 
+&:hover {
+    background-color: #1d2939;
+    color: #FFFFFF;
+}
+`
+const WalletInfoRow = styled.div`
+display: flex;
+flex-direction: row;
+justify-content: space-between;
+width: 100%;
+padding-bottom: 20px;
+`
+const WalletInfoContainer = styled.div`
+display: flex;
+flex-direction: row;
+align-items: center;
+justify-content: space-evenly;
+border: 4px solid #e9d7fe;
+border-radius: 100px;
+cursor: pointer;
+width: 135px;
+`
+const WalletInfoText = styled.div`
+background: linear-gradient(90deg, #a93dff, #583dff);
+background-clip: text;
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+animation: gradient 2s linear infinite;
+font-size: 14px;
+background-size: 400% 400%;
+font-weight: 600;
+padding-right: 5px;
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+    }
+}
+`
+const UnlinkIcon = styled.img`
+width: 20px;
+height: auto;
+padding: 2px 0px;
+`
+const WalletStatusIcon = styled.img`
+width: 27px;
+height: auto;
+`
+function WalletConnectView({connect}) {
+    return(
+        <WallectConnectContainer>
+            <HeaderText>Connect Wallet</HeaderText>
+            <WalletConnectBtn 
+                onClick={
+                    () => {
+                        connect()
+                    }
+                }>
+                Connect
+            </WalletConnectBtn>
+        </WallectConnectContainer>
+    )    
+}
 function Loader(res) {
     if (res === 'pending') {
         return(
@@ -268,7 +401,6 @@ function Loader(res) {
     }
     return null;
 }
-
 function ReturnAuthStatus(res) {
     // Loading
     if(!res || res === 'pending') {
@@ -294,4 +426,3 @@ function ReturnAuthStatus(res) {
         <StyledBadResponse>Invalid Passcode! Remaining Attempts: 69</StyledBadResponse>
     )
 }
-// Todo: update state on button press

@@ -1,11 +1,20 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { PromoAuthenticate } from './promoAuthenticate';
+import { WagmiConfig, createClient } from 'wagmi'
+import { getDefaultProvider } from 'ethers'
 
+ 
+const client = createClient({
+    autoConnect: true,
+    provider: getDefaultProvider(),
+  })
 
 function App() {
     return(
-        <PromoAuthenticate/>
+        <WagmiConfig client={client}>
+            <PromoAuthenticate/>
+        </WagmiConfig>
     );
 }
 
