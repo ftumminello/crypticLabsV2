@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useState } from "react";
 import styled from "styled-components";
 import { TailSpin } from 'react-loader-spinner'
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 
 const mobileLarge = '(max-width: 600px)';
@@ -21,6 +21,10 @@ export function PromoAuthenticate() {
     connector: new InjectedConnector(),
     })
     const { disconnect } = useDisconnect()
+    const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
+        message: 'Hello World ~ FROM CDT!',
+    })
+
 
     // functions
     function getCookie(cname) {
@@ -109,25 +113,44 @@ export function PromoAuthenticate() {
             }
         }
     }
-    async function getUUID() {
-        // for invalid input to avoid hitting API
-        for (let i=0; i<promo.length; i++) {
-            if (promo[i] === '') {
-                return 'Invalid';
+    async function getUUID(walletMode=false) {
+        let bodyObj;
+        if (walletMode) {
+            bodyObj = 
+            {
+                wallet: address,
+                mode: 'wallet'
+            }
+        } 
+        else {
+            // for invalid input to avoid hitting API
+            for (let i=0; i<promo.length; i++) {
+                if (promo[i] === '') {
+                    return 'Invalid';
+                }
+            }
+            const promoStr = promo.join("");
+            bodyObj = 
+            {
+                promo: promoStr,
+                wallet: address
             }
         }
-
-        const promoStr = promo.join("");
         const res = await fetch("https://3bnysrzpt2egxdrwphctfbzdqa0ryira.lambda-url.us-west-1.on.aws/", {
             method: 'POST',
-            body: JSON.stringify({promo: promoStr}),
+            body: JSON.stringify(bodyObj)
         })
         return res.json();
     }
-    async function validateUuidCookie(cookie) {
+    async function validateUuidCookie(cookie, wallet) {
         const res = await fetch("https://mqfzmdl5ez3zjsqdod72rvzlru0xytjq.lambda-url.us-west-1.on.aws/", {
             method: 'POST',
-            body: JSON.stringify({uuid: cookie})
+            body: JSON.stringify(
+                {
+                    uuid: cookie,
+                    wallet: wallet
+                }
+            )
         })
         if (res.status === 502) {
             return ('INTERNAL_ERROR');
@@ -141,6 +164,10 @@ export function PromoAuthenticate() {
     async function submitPromo() {
         setResponse('pending');
         setResponse(await getUUID());
+    }
+    async function checkWallet() {
+        setResponse('pending');
+        setResponse(await getUUID(true));
     }
     async function validateCookie(cookie) {
         setCookieStatus(await validateUuidCookie(cookie))
@@ -190,10 +217,25 @@ export function PromoAuthenticate() {
             window.location.href = "/aanfhqzp2m"
             return;
         }
+        // if wallet does not match
+        document.cookie = `username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+        
+
     }, [cookieStatus])
 
     useEffect(() => {
+        if (isConnected && !isSuccess) {
+            signMessage();
+        }
+    }, [isConnected])
+
+    useEffect(() => {
+        checkWallet();
+
         const uuidCookie = getCookie("cl-uuid");
+        // TODO add check wallet for cl-uuid
+        
+
         // if cookie exists
         if (uuidCookie !== "") {
             validateCookie(uuidCookie);           
@@ -202,9 +244,14 @@ export function PromoAuthenticate() {
 
     // if wallet is not connected
     if (!isConnected) {
-        return(
-            <WalletConnectView connect={connect}/>
+        return (
+            <WalletConnectView connect={connect} />
         )
+    }
+    if (isLoading) {
+        return(
+            <TailSpin color="#42307d"/>
+        ) 
     }
 
     return (
@@ -235,6 +282,7 @@ export function PromoAuthenticate() {
             {Loader(response)}
             <StyledButton onClick={submitPromo}>Submit</StyledButton>
             {ReturnAuthStatus(response)}
+            <div>Signature: {data}</div>
         </FormWrapper>
     )
 }
