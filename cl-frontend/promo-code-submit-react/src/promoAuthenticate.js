@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
 import styled from "styled-components";
-import { TailSpin } from 'react-loader-spinner'
+import { MutatingDots, TailSpin } from 'react-loader-spinner'
 import { useAccount, useConnect, useDisconnect, useSignMessage } from 'wagmi'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 
@@ -16,13 +16,13 @@ export function PromoAuthenticate() {
     const [cookieStatus, setCookieStatus] = useState(false);
 
     // Wallet Connect states and hooks
-    const { address, isConnected } = useAccount()
-    const { connect } = useConnect({
+    const { address, isConnected } = useAccount();
+    const { connect, error } = useConnect({
     connector: new InjectedConnector(),
-    })
+    });
     const { disconnect } = useDisconnect()
     const { data, isError, isLoading, isSuccess, signMessage } = useSignMessage({
-        message: 'Hello World ~ FROM CDT!',
+        message: 'Embrace this opportunity with open arms, and let the journey begin.\n\nTogether, we will explore the depths of knowledge, challenge ourselves in new ways, and forge bonds that will last a lifetime.',
     })
 
 
@@ -113,13 +113,13 @@ export function PromoAuthenticate() {
             }
         }
     }
-    async function getUUID(walletMode=false) {
+    async function getUUID(signatureMode=false) {
         let bodyObj;
-        if (walletMode) {
+        if (signatureMode) {
             bodyObj = 
             {
-                wallet: address,
-                mode: 'wallet'
+                signature: data,
+                mode: 'signature'
             }
         } 
         else {
@@ -133,7 +133,8 @@ export function PromoAuthenticate() {
             bodyObj = 
             {
                 promo: promoStr,
-                wallet: address
+                wallet: address,
+                signature: data
             }
         }
         const res = await fetch("https://3bnysrzpt2egxdrwphctfbzdqa0ryira.lambda-url.us-west-1.on.aws/", {
@@ -165,7 +166,7 @@ export function PromoAuthenticate() {
         setResponse('pending');
         setResponse(await getUUID());
     }
-    async function checkWallet() {
+    async function checkSignature() {
         setResponse('pending');
         setResponse(await getUUID(true));
     }
@@ -191,14 +192,24 @@ export function PromoAuthenticate() {
     
     //Hooks
     useEffect(() => {
-        console.log(response);
+        const uuidCookie = getCookie("cl-uuid");
+        // if cookie exists
+        if (uuidCookie !== "") {
+            validateCookie(uuidCookie);
+            return;    
+        }
+        if (isConnected) {
+            disconnect();
+        }
+    }, [])
+
+    useEffect(() => {
         if (response?.isUsed) {
             document.cookie = `cl-uuid=${window.btoa(response.uuid)}; max-age=31536000`;
             window.location.href = "/share";
             return;
         }
         if (response?.uuid) {
-            // Todo: add expire date and refresh the cookie MVP
             document.cookie = `cl-uuid=${window.btoa(response.uuid)}; max-age=31536000`;
             window.location.href = "/aanfhqzp2m";
             return;
@@ -220,40 +231,36 @@ export function PromoAuthenticate() {
         // if wallet does not match
         document.cookie = `username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
         
-
     }, [cookieStatus])
 
     useEffect(() => {
-        if (isConnected && !isSuccess) {
+        if (isConnected && !data) {
             signMessage();
+        } else if (data) {
+            checkSignature();
         }
-    }, [isConnected])
+    }, [isConnected, data])
 
-    useEffect(() => {
-        checkWallet();
-
-        const uuidCookie = getCookie("cl-uuid");
-        // TODO add check wallet for cl-uuid
-        
-
-        // if cookie exists
-        if (uuidCookie !== "") {
-            validateCookie(uuidCookie);           
-        }
-    }, [])
-
-    // if wallet is not connected
-    if (!isConnected) {
-        return (
-            <WalletConnectView connect={connect} />
-        )
-    }
+    // if currently signing
     if (isLoading) {
         return(
-            <TailSpin color="#42307d"/>
+            <FormWrapper>
+                <MutatingDots
+                    height="100"
+                    width="100"
+                    color="#6941c6"
+                    secondaryColor="#6941c6"
+                    radius='12.5'/>
+            </FormWrapper>
         ) 
     }
 
+    // if no signature
+    if (!data || !isConnected) {
+        return (
+            <WalletConnectView connect={connect} isError={isError} isConnected={isConnected} sign={signMessage} connectError={error}/>
+        )
+    }
     return (
         <FormWrapper>
             <WalletInfoRow>
@@ -280,9 +287,8 @@ export function PromoAuthenticate() {
                 <StyledInput onInput={handlePress} onKeyDown={handleDownStroke} maxLength="6" type="text" id="promo-entry-5"></StyledInput>
             </StyledInputRow>
             {Loader(response)}
-            <StyledButton onClick={submitPromo}>Submit</StyledButton>
+            <StyledButton id="submit-btn" onClick={submitPromo}>Submit</StyledButton>
             {ReturnAuthStatus(response)}
-            <div>Signature: {data}</div>
         </FormWrapper>
     )
 }
@@ -332,6 +338,9 @@ border: none;
 cursor: pointer;
 &:hover {
     background-color: rgba(29, 41, 57, 0.8);
+}
+&:disabled {
+    background-color: #808080;
 }
 `
 const StyledGoodResponse = styled.div`
@@ -421,23 +430,33 @@ const WalletStatusIcon = styled.img`
 width: 27px;
 height: auto;
 `
-function WalletConnectView({connect}) {
+function WalletConnectView({connect, isError, isConnected, sign, connectError}) {
     return(
         <WallectConnectContainer>
             <HeaderText>Connect Wallet</HeaderText>
             <WalletConnectBtn 
                 onClick={
                     () => {
-                        connect()
+                        if (!isConnected) {
+                            connect();
+                        } else {
+                            sign();
+                        }
                     }
                 }>
                 Connect
             </WalletConnectBtn>
+            {isError && <StyledBadResponse>User rejected signature</StyledBadResponse>}
+            {connectError && <StyledBadResponse>Looks like you're having issues. Try dowloading the MetaMask extension...</StyledBadResponse>}
         </WallectConnectContainer>
     )    
 }
 function Loader(res) {
+    const submitButton = document.getElementById('submit-btn')
     if (res === 'pending') {
+        if (submitButton) {
+            submitButton.disabled = true;
+        }
         return(
             <LoaderWrapper>
                 <TailSpin 
@@ -447,11 +466,20 @@ function Loader(res) {
             </LoaderWrapper>
         )
     }
+    if (submitButton) {
+        submitButton.disabled = false;
+    }
     return null;
 }
 function ReturnAuthStatus(res) {
     // Loading
     if(!res || res === 'pending') {
+        return;
+    }
+
+    // if checking sig
+    if (res?.status === 1000) {
+        console.log('Hello World');
         return;
     }
 
