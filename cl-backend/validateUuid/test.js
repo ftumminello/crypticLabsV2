@@ -2,8 +2,7 @@ const index = require("./index")
 
 const testObj = {
     body: JSON.stringify({
-        uuid: 'VktJeVhvLXc1UlJPMC1sYXBIdVAtaDc4akNmLUhSenhVZC1SOFJtRlE=',
-        wallet: 'SAMPLE WALLET'
+        uuid: 'c0hYdVRHLXhsaW03TC1RVmUwMVMtdklzTTlYLW9WMUdJMi05UG16dFA='
     })
 }
 async function main() {

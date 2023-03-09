@@ -5,18 +5,17 @@ const pg = require('pg');
 const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.elephantsql.com/gvlwnfqi";
 
 // Functions
-function selectString(uuid, wallet) {
+function selectString(uuid) {
     const selectQuery = `
     SELECT rowid, isUsed, applicationstatus from clPromoCodes
-    WHERE uuid = '${uuid}' and wallet = ${wallet}
+    WHERE uuid = '${uuid}'
     `;
     return (selectQuery);
 }
 async function checkValidUuid(client, body) {
     const uuidPlain = Buffer.from(body.uuid, 'base64').toString('utf8');
-    const wallet = body.wallet;
     try {
-        return (await client.query(selectString(uuidPlain, wallet)));
+        return (await client.query(selectString(uuidPlain)));
     }
     catch (err) {
         client.end();
@@ -35,8 +34,8 @@ const response = ((rowid, isused, applicationStatus) => {
 });
 function checkBodyShape(body) {
     const keys = Object.keys(body);
-    if (keys.length === 2) {
-        if (body?.uuid && body?.wallet) {
+    if (keys.length === 1) {
+        if (body?.uuid) {
             return true;
         }
     }
@@ -69,13 +68,15 @@ exports.handler = async function(event) {
     }
     const defaultResponse = { // default empty response
         statusCode: 200,
-        body: {}
+        body: {
+            status: 1000
+        }
     }
     
     const body = JSON.parse(event.body);
     
     // if request body is not formatted properly
-    if (!checkBodyShape) {
+    if (!checkBodyShape(body)) {
         return badResponse(2000);
     }
 

@@ -5,20 +5,37 @@ const pg = require('pg');
 const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.elephantsql.com/gvlwnfqi";
 
 // Functions
+
+function checkSignatureString(s) {
+    const signatureQuery =`
+    SELECT signature, uuid, isUsed FROM clPromoCodes
+    WHERE signature='${s}'
+    `;
+    return (signatureQuery);
+}
 function selectString(s) {
     const selectQuery = `
-    SELECT uuid, isused, wallet from clPromoCodes
+    SELECT uuid, isused, signature from clPromoCodes
     WHERE promo = '${s}'
     `;
     return (selectQuery);
 }
-function putString(wallet, promo) {
+function putString(wallet, promo, signature) {
     const putQuery = `
     UPDATE clPromoCodes
-    SET wallet='${wallet}'
+    SET wallet='${wallet}', signature='${signature}'
     WHERE promo='${promo}'
     `;
     return(putQuery)
+}
+async function checkSignature(client, signature) {
+    try {
+        return (await client.query(checkSignatureString(signature)));
+    }
+    catch (err) {
+        client.end();
+        return false;
+    }
 }
 async function checkPromoAvail(client, body) {
     try {
@@ -29,10 +46,9 @@ async function checkPromoAvail(client, body) {
         return false;
     }
 }
-async function linkWallet(client, wallet, promo) {
-    console.log(putString(wallet, promo))
+async function linkWallet(client, signature, wallet, promo) {
     try {
-        return (await client.query(putString(wallet, promo)));
+        return (await client.query(putString(wallet, promo, signature)));
     }
     catch (err) {
         console.log(err)
@@ -53,8 +69,14 @@ const response = ((uuid, isUsed) => {
 });
 function checkBodyShape(body) {
     const keys = Object.keys(body);
+    if (keys.length === 3) {
+        if (body?.promo && body?.signature && body?.wallet) {
+            return true;
+        }
+        return false;
+    }
     if (keys.length === 2) {
-        if (body?.promo && body?.wallet) {
+        if (body?.mode === 'signature' && body?.signature) {
             return true;
         }
     }
@@ -113,30 +135,53 @@ exports.handler = async function(event) {
     catch {
         return (internalErrResponse(2000));
     }
+    // check to see if signature has already been used
+    const signatureRes = await checkSignature(client, body.signature);
+
+    // if internal postgres (elephant) error
+    if (!signatureRes) {
+        return (internalErrResponse(5000))
+    }
+
+    // if signature exists
+    if (signatureRes.rowCount !== 0) {
+        client.end()
+        if (body?.mode) {
+            return (response(signatureRes.rows[0].uuid, signatureRes.rows[0].isused));
+        }
+        return (badResponse(3000));
+    }
+
+    // if no signature exists
+    if (body?.mode) {
+        client.end();
+        return (defaultResponse());
+    }
 
     // make request to databse
     const dbRes = await checkPromoAvail(client, body);
     
-    // return response for handler
+    // if internal postgres (elephant) error
     if (!dbRes) {
         return (internalErrResponse(3000));
     }
+
     // promo does not exist
     if (dbRes.rowCount === 0) {
         client.end();
         return (defaultResponse(2000));
     }
-    const returnedWallet = dbRes.rows[0].wallet;
+    // const returnedSignature = dbRes.rows[0].signature;
 
-    // promo is associated with wallet already
-    console.log(returnedWallet);
-    console.log(dbRes.rows[0]);
-    if (returnedWallet !== null && returnedWallet !== body.wallet) {
-        client.end();
-        return (defaultResponse(3000))
-    }
+    // promo is associated with wallet already, I think this is redundant logic and it does not need to be used
+    // if (returnedSignature !== null && returnedSignature !== body.signature) {
+    //     client.end();
+    //     return (defaultResponse(3000))
+    // }
 
-    const putRes = await linkWallet(client, body.wallet, body.promo);
+    const putRes = await linkWallet(client, body.signature, body.wallet, body.promo);
+    
+    // if internal postgres (elephant) error
     if (!putRes) {
         client.end();
         return (internalErrResponse(4000));

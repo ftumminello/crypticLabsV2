@@ -19,6 +19,7 @@ CREATE TABLE clPromoCodes (
     twitterHandle VARCHAR ( 50 ),
     discordHandle VARCHAR ( 50 ),
     wallet VARCHAR ( 50 ),
+    signature VARCHAR ( 150 ),
     description VARCHAR ( 20 ),
     upToDate VARCHAR ( 350 ),
     nftCreation VARCHAR ( 750 ),
@@ -44,7 +45,7 @@ const authenticateDataString = `
 SELECT rowID from clPromoCodes
 WHERE rowID<5`
 
-const values = functions.generatePromocodeArr(997, 6);
+const values = functions.generatePromocodeArr(1000, 6);
 const client = new pg.Client(dbURL);
 client.connect((err) => {
     if (err) {
