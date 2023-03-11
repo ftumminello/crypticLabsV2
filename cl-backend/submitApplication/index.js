@@ -1,7 +1,13 @@
 // BODY INPUT
-// clUuid: string (64bit encoded)
-// twitterHandle: string
-// discordHandle: string
+// clUuid:          string (64bit encoded)
+// twitterHandle:   string
+// discordHandle:   string
+// description:     string
+// upToDate:        string
+// nftCreation:     string
+// goals:           string
+// inspo:           string
+// projInspo:       string
 
 // Imports
 const pg = require('pg');
@@ -17,8 +23,9 @@ RETURNING rowid`
 function insertShareIds(arr) {
     return (
     `UPDATE clPromoCodes
-    SET isused=${arr[0]}, applicationstatus=${arr[1]}, sharerow1=${arr[2]}, sharerow2=${arr[3]}, sharerow3=${arr[4]}, twitterhandle='${arr[5]}', discordhandle='${arr[6]}', lastmodified='${arr[7]}'
-    WHERE rowid=${arr[8]}`
+    SET isused=${arr[0]}, applicationstatus=${arr[1]}, sharerow1=${arr[2]}, sharerow2=${arr[3]}, sharerow3=${arr[4]}, twitterhandle='${arr[5]}', discordhandle='${arr[6]}',
+    description='${arr[7]}', uptodate='${arr[8]}', nftcreation='${arr[9]}', goals='${arr[10]}', inspo='${arr[11]}', projinspo='${arr[12]}', lastmodified='${arr[13]}'
+    WHERE rowid=${arr[14]}`
     )
 }
 async function changeDbStatus(arr, client) {
@@ -26,13 +33,10 @@ async function changeDbStatus(arr, client) {
     // change the isUsed row to true
     // change the applicationStatus to false
     // populate the share rows
-    console.log(arr);
-    console.log(insertShareIds(arr));
     try {
         const res = await client.query(insertShareIds(arr));
     } catch (err) {
         client.end();
-        console.log(err)
         return false;
     }
     return true;
@@ -46,7 +50,6 @@ async function insertSharedPromoRows(client) {
     // --generate new rows on the bottom of the table
     // --return rowIDs of newly created rows
     const values = generatePromocodeArr(3, 6);
-    console.log(values);
 
     try {
         const res = await client.query(format(insertPromoCodes, values));
@@ -62,7 +65,6 @@ async function insertSharedPromoRows(client) {
 
         return (rowIdArr)
     } catch (err) {
-        console.log(err);
         client.end();
         return false;
     }
@@ -70,8 +72,8 @@ async function insertSharedPromoRows(client) {
 }
 function checkBodyShape(body) {
     const keys = Object.keys(body);
-    if (keys.length === 3) {
-        if (body?.clUuid && body?.twitterHandle && body?.discordHandle) {
+    if (keys.length === 9) {
+        if (body?.clUuid && body?.twitterHandle && body?.discordHandle && body?.description && body?.upToDate && body?.nftCreation && body?.goals && body?.inspo && body?.projInspo) {
             return true;
         }
     }
@@ -79,7 +81,7 @@ function checkBodyShape(body) {
 }
 function selectString(s) {
     const selectQuery = `
-    SELECT rowid, isused from clPromoCodes
+    SELECT rowid, isused, wallet from clPromoCodes
     WHERE uuid = '${s}'
     `;
     return (selectQuery);
@@ -117,13 +119,19 @@ function generatePromocodeArr(numPromoCodes, promoCodeLength) {
     }
     return promoData
 }
-function generateUpdateArr(shareIds, twitterHandle, discordHandle, usedRowId) {
+function generateUpdateArr(shareIds, body, usedRowId) {
     let retArr = [];
     const time = new Date();
     const boolArr = [true, false];
     retArr = boolArr.concat(shareIds);
-    retArr.push(twitterHandle);
-    retArr.push(discordHandle);
+    retArr.push(body.twitterHandle);
+    retArr.push(body.discordHandle);
+    retArr.push(body.description);
+    retArr.push(body.upToDate);
+    retArr.push(body.nftCreation);
+    retArr.push(body.goals);
+    retArr.push(body.inpso);
+    retArr.push(body.projInspo);
     retArr.push(time.toISOString());
     retArr.push(usedRowId);
 
@@ -133,9 +141,10 @@ async function checkValidUuid(client, uuid) {
     const uuidPlain = Buffer.from(uuid, 'base64').toString('utf8');
     try {
         const res = await client.query(selectString(uuidPlain));
-        const isUsed = res.rows[0].isused
+        const isUsed = res?.rows[0]?.isused
+        const isWallet = res?.rows[0]?.wallet
         // if null res or empty rows or isUsed
-        if (!res || res.rows === [] || isUsed) {
+        if (!res || res.rows === [] || isUsed || !isWallet) {
             return {isvalid: false, usedRow: res.rows[0]};
         }
         return {isValid: true, usedRow: res.rows[0].rowid};
@@ -199,13 +208,12 @@ exports.handler = async function(event) {
 
     // Manipulating the database
     const shareIds = await insertSharedPromoRows(client);
-    console.log(shareIds);
     if (!shareIds) {
         return internalErrResponse(3000);
     }
 
-    // Generate Update arr & Write DbStatus's
-    const updateArr = generateUpdateArr(shareIds, body.twitterHandle, body.discordHandle, usedRow);
+    // Generate Update arr & Write DbStatuses
+    const updateArr = generateUpdateArr(shareIds, body, usedRow);
     const updateStatus = await changeDbStatus(updateArr, client);
 
     if (!updateStatus) {
