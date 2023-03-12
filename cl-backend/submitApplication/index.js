@@ -130,7 +130,7 @@ function generateUpdateArr(shareIds, body, usedRowId) {
     retArr.push(body.upToDate);
     retArr.push(body.nftCreation);
     retArr.push(body.goals);
-    retArr.push(body.inpso);
+    retArr.push(body.inspo);
     retArr.push(body.projInspo);
     retArr.push(time.toISOString());
     retArr.push(usedRowId);

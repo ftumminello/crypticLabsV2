@@ -7,7 +7,7 @@ const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.el
 // Functions
 function selectString(uuid) {
     const selectQuery = `
-    SELECT rowid, isUsed, applicationstatus from clPromoCodes
+    SELECT rowid, isUsed, applicationstatus, wallet from clPromoCodes
     WHERE uuid = '${uuid}'
     `;
     return (selectQuery);
@@ -22,13 +22,14 @@ async function checkValidUuid(client, body) {
         return false;
     }
 }
-const response = ((rowid, isused, applicationStatus) => {
+const response = ((rowid, isused, applicationStatus, isWallet) => {
     return ({
         statusCode: 200,
         body: {
             row: `${rowid}`,
             isUsed: isused,
-            applicationStatus: applicationStatus
+            applicationStatus: applicationStatus,
+            isWallet: isWallet
         },
     });
 });
@@ -104,6 +105,12 @@ exports.handler = async function(event) {
         return (defaultResponse);
     }
     client.end();
-    return(response(dbRes.rows[0].rowid, dbRes.rows[0].isused, dbRes.rows[0].applicationstatus));
+
+    // if wallet has been established with uuid
+    let isWallet = false;
+    if (dbRes.rows[0]?.wallet) {
+        isWallet = true;
+    }
+    return(response(dbRes.rows[0].rowid, dbRes.rows[0].isused, dbRes.rows[0].applicationstatus, isWallet));
 };
 
