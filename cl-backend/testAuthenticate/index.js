@@ -171,13 +171,13 @@ exports.handler = async function(event) {
         client.end();
         return (defaultResponse(2000));
     }
-    // const returnedSignature = dbRes.rows[0].signature;
+    const returnedSignature = dbRes.rows[0].signature;
 
-    // promo is associated with wallet already, I think this is redundant logic and it does not need to be used
-    // if (returnedSignature !== null && returnedSignature !== body.signature) {
-    //     client.end();
-    //     return (defaultResponse(3000))
-    // }
+    // promo has been used
+    if (returnedSignature !== null) {
+        client.end();
+        return (defaultResponse(3000))
+    }
 
     const putRes = await linkWallet(client, body.signature, body.wallet, body.promo);
     

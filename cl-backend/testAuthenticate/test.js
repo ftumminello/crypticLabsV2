@@ -3,7 +3,7 @@ const index = require("./index.js")
 const testObj = {
     body: JSON.stringify(
         {
-            promo: 'fuckyou',
+            promo: 'jHMXcJ',
             signature: 'uniqueSignature',
             wallet: 'GetWrecked',
         }
@@ -19,7 +19,7 @@ const testObj1 = {
 }
 
 async function main() {
-    const res = await index.handler(testObj1);
+    const res = await index.handler(testObj);
     console.log(res);
 }
 main();
