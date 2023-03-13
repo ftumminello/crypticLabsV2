@@ -98,25 +98,28 @@ export function SubmitButton() {
             const res = await fetch("https://b2guggbptcqfu4ov4mroh4lq3q0elkab.lambda-url.us-west-1.on.aws/", {
                 method: 'POST',
                 body: JSON.stringify(body)
-            })
+            });
+            // Bad Gateway on endpoint
+            if (res.status === 502) {
+                return('INTERNAL_ERROR');
+            }
+
+            // unauthorized call wipe dat cook!
+            if (res.status === 401) {
+                return('UNAUTHORIZED');
+            }
+
+            return('SUCCESS');
         } catch {
             return('INTERNAL_ERROR');
         }
-        // Bad Gateway on endpoint
-        if (res.status === 502) {
-            return('INTERNAL_ERROR');
-        }
-
-        // unauthorized call wipe dat cook!
-        if (res.status === 401) {
-            return('UNAUTHORIZED');
-        }
-
-        return('SUCCESS');
+        
     }
     async function updateSubmitHandler(uuid) {
         setSubmitStatus('PENDING');
-        setSubmitStatus(await submitHandler(uuid));
+        const st = await submitHandler(uuid);
+        console.log(st);
+        setSubmitStatus(st);
     }
 
     // RUN ON MOUNT

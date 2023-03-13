@@ -62,7 +62,7 @@ export function ShareCodesView({uuid}) {
                         const copyOfState = [...copyAnimateState];
                         copyOfState[0] = true;
                         setCopyAniamte(copyOfState);
-                        navigator.clipboard.writeText(shareCodeState.promo1);}
+                        navigator.clipboard.writeText(`Psst... apply here --> https://www.crptclabs.com/auth code: ${shareCodeState.promo1}`);}
                     }
                     >{shareCodeState.promo1}</CodeText>
                     <CopyToClip state={copyAnimateState} setState={setCopyAniamte} id={'copy-icon-0'}/>
@@ -73,7 +73,7 @@ export function ShareCodesView({uuid}) {
                         const copyOfState = [...copyAnimateState];
                         copyOfState[1] = true;
                         setCopyAniamte(copyOfState);
-                        navigator.clipboard.writeText(shareCodeState.promo2);}
+                        navigator.clipboard.writeText(`Psst... apply here --> https://www.crptclabs.com/auth code: ${shareCodeState.promo2}`);}
                     }>{shareCodeState.promo2}</CodeText>
                     <CopyToClip state={copyAnimateState} setState={setCopyAniamte} id={'copy-icon-1'}/>
                 </CodeCopyCol>
@@ -83,7 +83,7 @@ export function ShareCodesView({uuid}) {
                         const copyOfState = [...copyAnimateState];
                         copyOfState[2] = true;
                         setCopyAniamte(copyOfState);
-                        navigator.clipboard.writeText(shareCodeState.promo3);}
+                        navigator.clipboard.writeText(`Psst... apply here --> https://www.crptclabs.com/auth code: ${shareCodeState.promo3}`);}
                     }>{shareCodeState.promo3}</CodeText>
                     <CopyToClip state={copyAnimateState} setState={setCopyAniamte} id={'copy-icon-2'}/>
                 </CodeCopyCol>  

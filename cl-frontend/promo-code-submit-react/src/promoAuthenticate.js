@@ -499,6 +499,6 @@ function ReturnAuthStatus(res) {
 
     // Dis man gay
     return (
-        <StyledBadResponse>Invalid Passcode! Remaining Attempts: 69</StyledBadResponse>
+        <StyledBadResponse>Invalid Passcode :/</StyledBadResponse>
     )
 }
