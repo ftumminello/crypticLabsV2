@@ -5,7 +5,7 @@
 const pg = require('pg');
 
 // Constants
-const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.elephantsql.com/gvlwnfqi";
+const dbURL = "SECRET_KEY";
 
 // Functions
 function selectRowsQuery(s) {

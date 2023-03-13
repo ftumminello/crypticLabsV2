@@ -4,7 +4,7 @@ const format = require('pg-format');
 const functions = require('../modules/functions');
 
 // strings & queries
-const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.elephantsql.com/gvlwnfqi"
+const dbURL = "SECRET_KEY"
 const createTableSqlString = `
 CREATE TABLE clPromoCodes (
     rowId serial PRIMARY KEY,

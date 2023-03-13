@@ -14,7 +14,7 @@ const pg = require('pg');
 const format = require('pg-format');
 
 // Constants
-const dbURL = "postgres://gvlwnfqi:nI-R82j_TJ7_Y0cdtHEoLW74icqAOYbT@kashin.db.elephantsql.com/gvlwnfqi";
+const dbURL = "SECRET_KEY";
 const insertPromoCodes = `
 INSERT INTO clPromoCodes (promo, uuid, isUsed, manuallyShared, lastModified) VALUES %L
 RETURNING rowid`
